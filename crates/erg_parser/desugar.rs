@@ -987,7 +987,11 @@ impl Desugarer {
         let id = DefId(get_hash(&(&obj, buf_name)));
         let start = Expr::Literal(Literal::nat(elems_len, sig.ln_begin().unwrap_or(1)));
         // FIXME: infinity
-        let max = 109521666047; // 102*1024*1024*1024-1 but why is this the limit?
+        let max = if usize::BITS == 64 {
+            109521666047 // 102*1024*1024*1024-1 but why is this the limit?
+        } else {
+            100000
+        };
         let end = Expr::Literal(Literal::nat(max, sig.ln_begin().unwrap_or(1)));
         let range = Token::new_with_loc(TokenKind::Closed, "..", sig.loc());
         let acc = obj.subscr(
