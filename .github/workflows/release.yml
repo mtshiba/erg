@@ -17,16 +17,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  cargo-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: publish
-        run: |
-          rustup update stable
-          cargo login ${{ secrets.CARGO_TOKEN }}
-          ./cargo_publish.sh
-
   upload-assets:
     needs: create-release
     strategy:
@@ -44,6 +34,8 @@ jobs:
             os: macos-latest
           - target: x86_64-pc-windows-msvc
             os: windows-latest
+          - target: i686-pc-windows-gnu
+            os: windows-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -57,15 +49,3 @@ jobs:
           features: full
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  notify-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: run curl
-        run: |
-          curl \
-            -X POST \
-            -H "Authorization: token ${{ secrets.TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/erg-lang/web-ide/dispatches \
-            -d '{"event_type":"release-notification","client_payload":{"msg": "A new Erg version has been released"}}'
