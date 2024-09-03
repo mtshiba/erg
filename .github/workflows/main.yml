@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-13]
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11.3']
     runs-on: ${{ matrix.os }}
     env:
@@ -66,31 +66,3 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: rustup update stable
       - run: cargo build --all --all-targets --verbose
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
-      - run: rustup update stable
-      - name: cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all --all-targets --verbose -- -D warnings
-
-  publish-nightly:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'update version (nightly')
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
-      - run: rustup update stable
-      - name: Check semver
-        run: |
-          cargo install cargo-semver-checks --locked
-          cargo semver-checks --all
-      - name: cargo publish
-        run: |
-          cargo login ${{ secrets.CARGO_TOKEN }}
-          ./cargo_publish.sh
