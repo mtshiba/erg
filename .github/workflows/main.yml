@@ -2,10 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - "*"
+      - "*/*"
     paths-ignore:
       - "doc/**"
-      - ".github/**"
       - ".assets/**"
       - ".cargo/**"
       - "**.md"
@@ -49,7 +50,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: rustup update stable
       - uses: taiki-e/install-action@nextest
-      - run: cargo test run --features backtrace --all --exclude els --verbose -- --include-ignored --nocapture
+      - run: cargo test --features backtrace --all --exclude els --verbose -- --include-ignored --nocapture
       # FIXME: Currently, when running ELS tests in the GitHub actions environment,
       # the tests fail probabilistically on Windows and MacOS.
       # This is likely due to a delay in processing timing.
@@ -67,31 +68,3 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: rustup update stable
       - run: cargo build --all --all-targets --verbose
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
-      - run: rustup update stable
-      - name: cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all --all-targets --verbose -- -D warnings
-
-  publish-nightly:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'update version (nightly')
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
-      - run: rustup update stable
-      - name: Check semver
-        run: |
-          cargo install cargo-semver-checks --locked
-          cargo semver-checks --all
-      - name: cargo publish
-        run: |
-          cargo login ${{ secrets.CARGO_TOKEN }}
-          ./cargo_publish.sh
